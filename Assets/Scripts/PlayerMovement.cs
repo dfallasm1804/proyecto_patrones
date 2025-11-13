@@ -8,7 +8,7 @@ using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 using Debug = UnityEngine.Debug;
 
-public class PlayerMovement : MonoBehaviour, IMovible, ISalto, IAtacar, IGroundcheck
+public class PlayerMovement : MonoBehaviour, IMovible, ISalto, IGroundcheck, IHandleTrigger
 {
     public Rigidbody2D _rb;
     private bool _isFacingRight = true;
@@ -48,25 +48,13 @@ public class PlayerMovement : MonoBehaviour, IMovible, ISalto, IAtacar, IGroundc
     [Header("Unlocks")] 
     public Collider2D doubleJumpUnlock;
     private bool hasTripleJump = false;
-    public Collider2D attackUnlock;
-    private bool hasAttack;
     
-    [Header("Atacar")]
-    [SerializeField] private GameObject _bulletPrefab;
-    
-    [Header("FPS")]
-    private int _fpsTarget = 60;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
     }
-
-    void Awake()
-    {
-        QualitySettings.vSyncCount = 0;
-        Application.targetFrameRate = _fpsTarget;
-    }
+    
 
     // Update is called once per frame
     void FixedUpdate()
@@ -77,9 +65,6 @@ public class PlayerMovement : MonoBehaviour, IMovible, ISalto, IAtacar, IGroundc
 
     private void Update()
     {
-        if(Application.targetFrameRate != _fpsTarget)
-            Application.targetFrameRate = _fpsTarget;
-        
         IsGrounded();
         Flip();
         ProcessWallSlide();
@@ -119,25 +104,6 @@ public class PlayerMovement : MonoBehaviour, IMovible, ISalto, IAtacar, IGroundc
             _wallJumpTimer = 0;
             Invoke(nameof(CancelWallJump), _wallJumpTime + 0.1f);
         } 
-    }
-
-    // IAtacar
-    public void Attack(InputAction.CallbackContext context)
-    {
-        if (context.performed && hasAttack)
-        {
-            Shoot();
-        }
-    }
-
-    private void Shoot()
-    {
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        
-        Vector3 direction = (mousePos - transform.position).normalized;
-        
-        GameObject bullet = Instantiate(_bulletPrefab, transform.position, Quaternion.identity);
-        bullet.GetComponent<Rigidbody2D>().linearVelocity = direction * 15;
     }
     
     public void IsGrounded()
@@ -215,11 +181,7 @@ public class PlayerMovement : MonoBehaviour, IMovible, ISalto, IAtacar, IGroundc
             hasTripleJump = true;
         }
 
-        if (collision.name == "AttackUnlock")
-        {
-            Debug.Log("Attack Unlock");
-            hasAttack = true;
-        }
+
     }
 
     private void OnDrawGizmosSelected()
@@ -230,4 +192,5 @@ public class PlayerMovement : MonoBehaviour, IMovible, ISalto, IAtacar, IGroundc
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(_wallCheckPos.position, _wallCheckSize);
     }
+    
 }

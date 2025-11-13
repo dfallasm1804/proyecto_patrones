@@ -1,6 +1,8 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Random = UnityEngine.Random;
 
 public class ProcGen : MonoBehaviour
 {
@@ -10,8 +12,7 @@ public class ProcGen : MonoBehaviour
     [SerializeField] private TileBase groundTile, caveTile;
     [SerializeField] private Tilemap groundTilemap, caveTilemap;
     private int[,] map;
-
-
+    
     [Header("Caves")] 
     [Range(0, 1)]
     [SerializeField] private float modifier;
@@ -19,16 +20,22 @@ public class ProcGen : MonoBehaviour
     void Start()
     {
         Generation();
+        GameController.OnReset += Generation;
     }
     
-    void Generation()
+    public void Generation()
     {
         seed = Random.Range(-10000, 10000);
         ClearMap();
         groundTilemap.ClearAllTiles();
+        
         map = GenerateArray(width, height, true);
         map = TerrainGeneration(map);
-        RenderMap(map, groundTilemap, caveTilemap, groundTile, caveTile);
+        RenderMap(map, groundTilemap, caveTilemap, groundTile, caveTile, 0 , 0);
+
+        seed = Random.Range(-10000, 10000);
+        map = TerrainGeneration(map);
+        RenderMap(map, groundTilemap, caveTilemap, groundTile, caveTile, 0 , 50);
     }
 
     public int [,] GenerateArray(int width, int height, bool empty)
@@ -63,7 +70,7 @@ public class ProcGen : MonoBehaviour
         return map;
     }
 
-    public void RenderMap(int[,] map, Tilemap groundTilemap, Tilemap caveTilemap, TileBase groundTile, TileBase caveTile)
+    public void RenderMap(int[,] map, Tilemap groundTilemap, Tilemap caveTilemap, TileBase groundTile, TileBase caveTile, int originX, int originY)
     {
         for (int x = 0; x < width; x++)
         {
@@ -71,10 +78,10 @@ public class ProcGen : MonoBehaviour
             {
                 if (map[x, y] == 1)
                 {
-                    groundTilemap.SetTile(new Vector3Int(x, y, 0), groundTile);
+                    groundTilemap.SetTile(new Vector3Int(x + originX, y + originY, 0), groundTile);
                 } else if (map[x, y] == 2)
                 {
-                    caveTilemap.SetTile(new Vector3Int(x, y, 0), caveTile);
+                    caveTilemap.SetTile(new Vector3Int(x + originX, y + originY, 0), caveTile);
                 }
             }
         }
